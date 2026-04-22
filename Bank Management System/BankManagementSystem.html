@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bank Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --gold: #C9952A;
+    --gold-light: #F5E6C0;
+    --gold-dark: #8A6418;
+    --navy: #0D1B3E;
+    --navy-mid: #1A2E5E;
+    --navy-light: #2B4080;
+    --cream: #FAF8F3;
+    --white: #FFFFFF;
+    --text: #0D1B3E;
+    --muted: #5E6E99;
+    --border: rgba(13,27,62,0.12);
+    --success: #1D7A4E;
+    --success-bg: #E6F5ED;
+    --danger: #B53030;
+    --danger-bg: #FAEAEA;
+    --warn: #8A5A00;
+    --warn-bg: #FEF4DC;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(13,27,62,0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Manrope', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--navy);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    border-bottom: 2px solid var(--gold);
+  }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: var(--gold);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .logo-text { font-family: 'DM Serif Display', serif; font-size: 20px; color: #fff; letter-spacing: 0.02em; }
+  .logo-sub { font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 0.12em; text-transform: uppercase; }
+  .header-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--gold);
+    background: rgba(201,149,42,0.12);
+    border: 1px solid rgba(201,149,42,0.3);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  /* ── LAYOUT ── */
+  .app { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 64px); }
+
+  /* ── SIDEBAR ── */
+  aside {
+    background: var(--navy-mid);
+    padding: 1.5rem 0;
+    position: sticky; top: 0;
+  }
+  .nav-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0 1.25rem;
+    margin: 0.5rem 0;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 1.25rem;
+    color: rgba(255,255,255,0.65);
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .nav-item.active { background: rgba(201,149,42,0.15); color: var(--gold); border-left-color: var(--gold); }
+  .nav-icon { font-size: 15px; width: 20px; text-align: center; }
+
+  /* ── MAIN ── */
+  main { padding: 2rem; overflow-x: hidden; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── PAGE TITLE ── */
+  .page-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    color: var(--navy);
+    margin-bottom: 0.25rem;
+  }
+  .page-sub { font-size: 13px; color: var(--muted); margin-bottom: 1.75rem; }
+
+  /* ── STAT CARDS ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 1.75rem; }
+  .stat-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1rem 1.25rem;
+    box-shadow: var(--shadow);
+  }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .stat-value { font-size: 22px; font-weight: 700; color: var(--navy); font-family: 'DM Mono', monospace; }
+  .stat-delta { font-size: 12px; margin-top: 4px; font-weight: 500; }
+  .delta-up { color: var(--success); }
+  .delta-down { color: var(--danger); }
+
+  /* ── ACCOUNT TABLE ── */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-title { font-weight: 700; font-size: 14px; color: var(--navy); }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: var(--cream);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    padding: 10px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td { padding: 13px 16px; font-size: 13.5px; border-bottom: 1px solid rgba(13,27,62,0.05); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(13,27,62,0.02); }
+  .acc-no { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
+  .badge {
+    font-size: 11px; font-weight: 600; padding: 3px 8px;
+    border-radius: 20px; letter-spacing: 0.04em;
+  }
+  .badge-savings  { background: #E8F5E9; color: #1B6B35; }
+  .badge-current  { background: #E3F0FF; color: #1A4E8A; }
+  .badge-loan     { background: #FEF4DC; color: var(--warn); }
+  .balance { font-family: 'DM Mono', monospace; font-weight: 600; color: var(--navy); }
+  .balance.negative { color: var(--danger); }
+
+  /* ── FORMS ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 1.5rem; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1/-1; }
+  label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; }
+  input, select {
+    height: 40px; border: 1px solid var(--border); border-radius: 8px;
+    padding: 0 12px; font-size: 14px; font-family: 'Manrope', sans-serif;
+    background: var(--cream); color: var(--text);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input:focus, select:focus {
+    outline: none; border-color: var(--navy-light);
+    box-shadow: 0 0 0 3px rgba(42,64,128,0.1);
+  }
+  .btn {
+    height: 40px; border-radius: 8px; border: none;
+    font-family: 'Manrope', sans-serif; font-size: 13.5px; font-weight: 600;
+    cursor: pointer; padding: 0 20px; transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary { background: var(--navy); color: #fff; }
+  .btn-primary:hover { background: var(--navy-light); }
+  .btn-gold { background: var(--gold); color: #fff; }
+  .btn-gold:hover { background: var(--gold-dark); }
+  .btn-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid rgba(181,48,48,0.2); }
+  .btn-danger:hover { background: #F7D5D5; }
+  .form-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px;
+    padding: 14px 20px; border-radius: 10px;
+    font-size: 13.5px; font-weight: 500;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    transform: translateY(80px); opacity: 0;
+    transition: all 0.3s cubic-bezier(0.22,1,0.36,1);
+    z-index: 999; max-width: 320px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { background: var(--success-bg); color: var(--success); border: 1px solid rgba(29,122,78,0.25); }
+  #toast.error   { background: var(--danger-bg);  color: var(--danger);  border: 1px solid rgba(181,48,48,0.25); }
+  #toast.info    { background: #EAF0FF; color: var(--navy); border: 1px solid rgba(13,27,62,0.2); }
+
+  /* ── OOP DIAGRAM ── */
+  .oop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .oop-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1.25rem;
+    box-shadow: var(--shadow);
+  }
+  .oop-tag {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 3px 8px; border-radius: 4px; margin-bottom: 10px;
+  }
+  .tag-enc  { background: #E3F0FF; color: #1A4E8A; }
+  .tag-abs  { background: #F3E8FF; color: #5A1A9A; }
+  .tag-inh  { background: #E6F5ED; color: #1D7A4E; }
+  .tag-poly { background: #FEF4DC; color: var(--warn); }
+  .oop-title { font-weight: 700; font-size: 15px; margin-bottom: 6px; color: var(--navy); }
+  .oop-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .code-block {
+    background: var(--navy);
+    color: #B8D0FF;
+    font-family: 'DM Mono', monospace;
+    font-size: 11.5px;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 12px;
+    line-height: 1.8;
+    overflow-x: auto;
+  }
+  .c-kw   { color: #F59E0B; }
+  .c-cls  { color: #7DD3FC; }
+  .c-fn   { color: #86EFAC; }
+  .c-str  { color: #FCA5A5; }
+  .c-cmt  { color: #6B7DB3; font-style: italic; }
+
+  /* ── TXNS ── */
+  .txn-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid rgba(13,27,62,0.05); }
+  .txn-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .txn-icon.dep  { background: var(--success-bg); color: var(--success); }
+  .txn-icon.with { background: var(--danger-bg);  color: var(--danger); }
+  .txn-icon.trx  { background: #E3F0FF; color: #1A4E8A; }
+  .txn-info { flex: 1; }
+  .txn-name { font-size: 13.5px; font-weight: 600; color: var(--navy); }
+  .txn-sub  { font-size: 12px; color: var(--muted); }
+  .txn-amount { font-family: 'DM Mono', monospace; font-weight: 700; font-size: 14px; }
+  .txn-amount.positive { color: var(--success); }
+  .txn-amount.negative { color: var(--danger); }
+
+  @media (max-width: 800px) {
+    .app { grid-template-columns: 1fr; }
+    aside { display: flex; flex-wrap: wrap; padding: 0.5rem; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .oop-grid { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🏦</div>
+    <div>
+      <div class="logo-text">Dhaka National Bank</div>
+      <div class="logo-sub">Management System</div>
+    </div>
+  </div>
+  <div class="header-badge">Java OOP · HTML UI</div>
+</header>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside>
+    <div class="nav-label">Menu</div>
+    <div class="nav-item active" onclick="nav('dashboard')"><span class="nav-icon">◉</span> Dashboard</div>
+    <div class="nav-item" onclick="nav('accounts')"><span class="nav-icon">◈</span> Accounts</div>
+    <div class="nav-item" onclick="nav('open')"><span class="nav-icon">✦</span> Open Account</div>
+    <div class="nav-item" onclick="nav('transactions')"><span class="nav-icon">⇄</span> Transactions</div>
+    <div class="nav-item" onclick="nav('history')"><span class="nav-icon">≡</span> History</div>
+    <div class="nav-label" style="margin-top:1.5rem;">Concepts</div>
+    <div class="nav-item" onclick="nav('oop')"><span class="nav-icon">❖</span> OOP Concepts</div>
+  </aside>
+
+  <main>
+
+    <!-- DASHBOARD -->
+    <div id="pg-dashboard" class="page active">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub">Overview of bank operations and accounts</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Accounts</div>
+          <div class="stat-value" id="s-total">3</div>
+          <div class="stat-delta delta-up">▲ Active</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Deposits</div>
+          <div class="stat-value" id="s-deposits">৳85,000</div>
+          <div class="stat-delta delta-up">▲ All accounts</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Loans Outstanding</div>
+          <div class="stat-value" id="s-loans">৳50,000</div>
+          <div class="stat-delta delta-down">▼ 1 loan</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Transactions</div>
+          <div class="stat-value" id="s-txns">0</div>
+          <div class="stat-delta">Today</div>
+        </div>
+      </div>
+
+      <!-- Recent accounts -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Accounts Overview</div>
+        </div>
+        <table>
+          <thead><tr><th>Account No</th><th>Holder</th><th>Type</th><th>Balance</th><th>Status</th></tr></thead>
+          <tbody id="dash-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ACCOUNTS -->
+    <div id="pg-accounts" class="page">
+      <div class="page-title">All Accounts</div>
+      <div class="page-sub">Full list of managed accounts</div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Account Registry</div>
+        </div>
+        <table>
+          <thead><tr><th>Account No</th><th>Holder</th><th>Type</th><th>Balance</th><th>Extra Info</th></tr></thead>
+          <tbody id="acc-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- OPEN ACCOUNT -->
+    <div id="pg-open" class="page">
+      <div class="page-title">Open New Account</div>
+      <div class="page-sub">Demonstrates Inheritance — all account types extend Account</div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Account Details</div></div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Account Type</label>
+            <select id="new-type" onchange="toggleFields()">
+              <option value="savings">Savings Account</option>
+              <option value="current">Current Account</option>
+              <option value="loan">Loan Account</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Holder Name</label>
+            <input id="new-name" type="text" placeholder="Full Name"/>
+          </div>
+          <div class="form-group" id="fg-deposit">
+            <label id="lbl-deposit">Initial Deposit (৳)</label>
+            <input id="new-amount" type="number" placeholder="e.g. 10000"/>
+          </div>
+          <div class="form-group" id="fg-rate">
+            <label id="lbl-rate">Interest Rate (%)</label>
+            <input id="new-rate" type="number" placeholder="e.g. 6" step="0.1"/>
+          </div>
+          <div class="form-group" id="fg-extra" style="display:none;">
+            <label id="lbl-extra">Overdraft Limit (৳)</label>
+            <input id="new-extra" type="number" placeholder="e.g. 5000"/>
+          </div>
+          <div class="form-group" id="fg-tenure" style="display:none;">
+            <label>Tenure (months)</label>
+            <input id="new-tenure" type="number" placeholder="e.g. 24"/>
+          </div>
+        </div>
+        <div class="form-footer">
+          <button class="btn btn-primary" onclick="openAccount()">Open Account ✦</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div id="pg-transactions" class="page">
+      <div class="page-title">Transactions</div>
+      <div class="page-sub">Demonstrates Polymorphism — withdraw() behaves differently per type</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+        <!-- DEPOSIT -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">Deposit</div></div>
+          <div class="form-grid" style="grid-template-columns:1fr;">
+            <div class="form-group">
+              <label>Account</label>
+              <select id="dep-acc"></select>
+            </div>
+            <div class="form-group">
+              <label>Amount (৳)</label>
+              <input id="dep-amt" type="number" placeholder="Amount"/>
+            </div>
+          </div>
+          <div class="form-footer">
+            <button class="btn btn-gold" onclick="doDeposit()">Deposit ↓</button>
+          </div>
+        </div>
+        <!-- WITHDRAW -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">Withdraw / Repay</div></div>
+          <div class="form-grid" style="grid-template-columns:1fr;">
+            <div class="form-group">
+              <label>Account</label>
+              <select id="with-acc"></select>
+            </div>
+            <div class="form-group">
+              <label>Amount (৳)</label>
+              <input id="with-amt" type="number" placeholder="Amount"/>
+            </div>
+          </div>
+          <div class="form-footer">
+            <button class="btn btn-danger" onclick="doWithdraw()">Withdraw ↑</button>
+          </div>
+        </div>
+        <!-- TRANSFER -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">Transfer</div></div>
+          <div class="form-grid" style="grid-template-columns:1fr;">
+            <div class="form-group">
+              <label>From</label>
+              <select id="trx-from"></select>
+            </div>
+            <div class="form-group">
+              <label>To</label>
+              <select id="trx-to"></select>
+            </div>
+            <div class="form-group">
+              <label>Amount (৳)</label>
+              <input id="trx-amt" type="number" placeholder="Amount"/>
+            </div>
+          </div>
+          <div class="form-footer">
+            <button class="btn btn-primary" onclick="doTransfer()">Transfer ⇄</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div id="pg-history" class="page">
+      <div class="page-title">Transaction History</div>
+      <div class="page-sub">All deposits, withdrawals and transfers</div>
+      <div class="card">
+        <div id="history-list"></div>
+        <div id="history-empty" style="padding:2rem;text-align:center;color:var(--muted);font-size:13px;">No transactions yet. Go to Transactions to begin.</div>
+      </div>
+    </div>
+
+    <!-- OOP CONCEPTS -->
+    <div id="pg-oop" class="page">
+      <div class="page-title">OOP Concepts in Java</div>
+      <div class="page-sub">How this system implements the four pillars of Object-Oriented Programming</div>
+      <div class="oop-grid">
+
+        <div class="oop-card">
+          <div class="oop-tag tag-enc">Encapsulation</div>
+          <div class="oop-title">Data Hiding</div>
+          <div class="oop-desc">All account fields (balance, accountNumber, holderName) are declared <code>private</code>. External code must use <code>getBalance()</code> and <code>setBalance()</code>. This prevents invalid direct assignments.</div>
+          <div class="code-block">
+<span class="c-kw">private</span> <span class="c-cls">double</span> balance;<br>
+<span class="c-kw">private</span> <span class="c-cls">String</span> accountNumber;<br><br>
+<span class="c-cmt">// Only via getter/setter</span><br>
+<span class="c-kw">public</span> <span class="c-cls">double</span> <span class="c-fn">getBalance</span>() {<br>
+&nbsp;&nbsp;<span class="c-kw">return</span> balance;<br>
+}
+          </div>
+        </div>
+
+        <div class="oop-card">
+          <div class="oop-tag tag-abs">Abstraction</div>
+          <div class="oop-title">Abstract Class</div>
+          <div class="oop-desc"><code>Account</code> is declared <code>abstract</code>. It defines <code>withdraw()</code> as abstract — forcing every subclass to implement its own withdrawal rules, while hiding the complexity from callers.</div>
+          <div class="code-block">
+<span class="c-kw">abstract class</span> <span class="c-cls">Account</span> {<br>
+&nbsp;&nbsp;<span class="c-cmt">// Abstract method — no body!</span><br>
+&nbsp;&nbsp;<span class="c-kw">public abstract void</span> <span class="c-fn">withdraw</span>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="c-cls">double</span> amount<br>
+&nbsp;&nbsp;);<br>
+}
+          </div>
+        </div>
+
+        <div class="oop-card">
+          <div class="oop-tag tag-inh">Inheritance</div>
+          <div class="oop-title">Extends Account</div>
+          <div class="oop-desc"><code>SavingsAccount</code>, <code>CurrentAccount</code>, and <code>LoanAccount</code> all <code>extend Account</code>. They inherit <code>deposit()</code>, <code>getBalance()</code>, and other shared methods automatically via <code>super()</code>.</div>
+          <div class="code-block">
+<span class="c-kw">class</span> <span class="c-cls">SavingsAccount</span><br>
+&nbsp;&nbsp;<span class="c-kw">extends</span> <span class="c-cls">Account</span> {<br><br>
+&nbsp;&nbsp;<span class="c-fn">SavingsAccount</span>(...) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="c-kw">super</span>(accNo, name, ...);<br>
+&nbsp;&nbsp;}<br>
+}
+          </div>
+        </div>
+
+        <div class="oop-card">
+          <div class="oop-tag tag-poly">Polymorphism</div>
+          <div class="oop-title">Runtime Override</div>
+          <div class="oop-desc"><code>withdraw()</code> is overridden in each subclass. Savings checks minimum balance, Current allows overdraft, Loan treats it as repayment. The correct version is selected at runtime via <code>@Override</code>.</div>
+          <div class="code-block">
+<span class="c-cmt">// Same call, different behaviour:</span><br>
+<span class="c-cls">Account</span> a = <span class="c-kw">new</span> <span class="c-cls">SavingsAccount</span>(...);<br>
+a.<span class="c-fn">withdraw</span>(<span class="c-str">500</span>); <span class="c-cmt">// checks min bal</span><br><br>
+<span class="c-cls">Account</span> b = <span class="c-kw">new</span> <span class="c-cls">CurrentAccount</span>(...);<br>
+b.<span class="c-fn">withdraw</span>(<span class="c-str">500</span>); <span class="c-cmt">// allows overdraft</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Class Hierarchy -->
+      <div class="card" style="margin-top:1.5rem;">
+        <div class="card-header"><div class="card-title">Class Hierarchy</div></div>
+        <div style="padding:1.5rem;display:flex;align-items:flex-start;gap:0;flex-direction:column;">
+          <div style="display:flex;align-items:center;gap:0;width:100%;">
+            <div style="background:var(--navy);color:#fff;border-radius:8px;padding:10px 20px;font-family:'DM Mono',monospace;font-size:13px;font-weight:600;white-space:nowrap;">abstract Account</div>
+            <div style="flex:1;height:2px;background:var(--border);"></div>
+          </div>
+          <div style="display:flex;gap:24px;padding-left:60px;margin-top:16px;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+              <div style="width:2px;height:20px;background:var(--border);"></div>
+              <div style="background:#E3F0FF;color:#1A4E8A;border-radius:8px;padding:10px 16px;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;border:1px solid rgba(26,78,138,0.25);">SavingsAccount</div>
+              <div style="font-size:11px;color:var(--muted);text-align:center;">min balance<br>+ interest</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+              <div style="width:2px;height:20px;background:var(--border);"></div>
+              <div style="background:#E6F5ED;color:#1D7A4E;border-radius:8px;padding:10px 16px;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;border:1px solid rgba(29,122,78,0.25);">CurrentAccount</div>
+              <div style="font-size:11px;color:var(--muted);text-align:center;">overdraft<br>limit</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+              <div style="width:2px;height:20px;background:var(--border);"></div>
+              <div style="background:#FEF4DC;color:var(--warn);border-radius:8px;padding:10px 16px;font-family:'DM Mono',monospace;font-size:12px;font-weight:600;border:1px solid rgba(138,90,0,0.25);">LoanAccount</div>
+              <div style="font-size:11px;color:var(--muted);text-align:center;">EMI calc<br>+ repayment</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── DATA MODEL (mirrors Java OOP) ──────────────────────────────
+let accounts = [];
+let transactions = [];
+let counter = 1001;
+
+// Abstract base (simulated)
+class Account {
+  constructor(number, holder, balance, type) {
+    if (new.target === Account) throw new Error("Abstract!");
+    this._number  = number;
+    this._holder  = holder;
+    this._balance = balance;
+    this._type    = type;
+  }
+  // Encapsulation: getters
+  get accountNumber() { return this._number; }
+  get holderName()    { return this._holder; }
+  get balance()       { return this._balance; }
+  get accountType()   { return this._type; }
+  set balance(v) {
+    if (v < -99999) throw new Error("Balance too low");
+    this._balance = v;
+  }
+  deposit(amount) {
+    if (amount <= 0) throw new Error("Amount must be positive");
+    this._balance += amount;
+    logTxn("deposit", this._number, amount);
+  }
+  // Abstract — override in subclasses (Polymorphism)
+  withdraw(amount) { throw new Error("Abstract method"); }
+  get extraInfo() { return "—"; }
+}
+
+// Inheritance: SavingsAccount extends Account
+class SavingsAccount extends Account {
+  constructor(number, holder, balance, rate) {
+    super(number, holder, balance, "savings");
+    this._rate   = rate;
+    this._minBal = 500;
+  }
+  withdraw(amount) {
+    if (amount <= 0) throw new Error("Amount must be positive");
+    if (this._balance - amount < this._minBal)
+      throw new Error(`Min balance ৳${this._minBal} required`);
+    this._balance -= amount;
+    logTxn("withdraw", this._number, amount);
+  }
+  applyInterest() {
+    const i = this._balance * this._rate;
+    this._balance += i;
+    return i;
+  }
+  get extraInfo() { return `Rate: ${(this._rate*100).toFixed(1)}%`; }
+}
+
+// Inheritance: CurrentAccount extends Account
+class CurrentAccount extends Account {
+  constructor(number, holder, balance, overdraft) {
+    super(number, holder, balance, "current");
+    this._overdraft = overdraft;
+  }
+  withdraw(amount) {
+    if (amount <= 0) throw new Error("Amount must be positive");
+    if (this._balance - amount < -this._overdraft)
+      throw new Error(`Overdraft limit ৳${this._overdraft} exceeded`);
+    this._balance -= amount;
+    logTxn("withdraw", this._number, amount);
+  }
+  get extraInfo() { return `Overdraft: ৳${this._overdraft.toLocaleString()}`; }
+}
+
+// Inheritance: LoanAccount extends Account
+class LoanAccount extends Account {
+  constructor(number, holder, amount, rate, tenure) {
+    super(number, holder, amount, "loan");
+    this._rate    = rate;
+    this._tenure  = tenure;
+    this._orig    = amount;
+  }
+  withdraw(amount) {
+    if (amount <= 0) throw new Error("Amount must be positive");
+    if (amount > this._balance) throw new Error("Exceeds outstanding loan");
+    this._balance -= amount;
+    logTxn("repayment", this._number, amount);
+  }
+  get emi() {
+    const r = this._rate / 12;
+    const p = Math.pow(1+r, this._tenure);
+    return this._orig * r * p / (p - 1);
+  }
+  get extraInfo() { return `EMI: ৳${this.emi.toFixed(0)} | ${this._tenure}mo`; }
+}
+
+// ── INIT: seed sample data ─────────────────────────────────────
+function seedData() {
+  accounts.push(new SavingsAccount ("SAV-1001", "Rahim Uddin",   10000, 0.06));
+  accounts.push(new CurrentAccount ("CUR-1002", "Karim Hossain", 25000, 5000));
+  accounts.push(new LoanAccount    ("LON-1003", "Nasrin Begum",  50000, 0.12, 24));
+  counter = 1004;
+}
+
+// ── TRANSACTION LOG ────────────────────────────────────────────
+function logTxn(type, accNo, amount) {
+  transactions.unshift({ type, accNo, amount, time: new Date() });
+  updateStats();
+}
+
+// ── NAV ───────────────────────────────────────────────────────
+function nav(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('pg-'+page).classList.add('active');
+  event.currentTarget.classList.add('active');
+  refreshPage(page);
+}
+
+function refreshPage(page) {
+  if (page === 'dashboard')    renderDashTable();
+  if (page === 'accounts')     renderAccTable();
+  if (page === 'transactions') populateSelects();
+  if (page === 'history')      renderHistory();
+}
+
+// ── RENDER ────────────────────────────────────────────────────
+function renderDashTable() {
+  const tbody = document.getElementById('dash-table');
+  tbody.innerHTML = accounts.map(a => `
+    <tr>
+      <td class="acc-no">${a.accountNumber}</td>
+      <td>${a.holderName}</td>
+      <td><span class="badge badge-${a.accountType}">${a.accountType}</span></td>
+      <td class="balance ${a.balance<0?'negative':''}">৳${a.balance.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+      <td><span class="badge" style="background:var(--success-bg);color:var(--success);">Active</span></td>
+    </tr>`).join('');
+}
+
+function renderAccTable() {
+  const tbody = document.getElementById('acc-table');
+  tbody.innerHTML = accounts.map(a => `
+    <tr>
+      <td class="acc-no">${a.accountNumber}</td>
+      <td>${a.holderName}</td>
+      <td><span class="badge badge-${a.accountType}">${a.accountType}</span></td>
+      <td class="balance ${a.balance<0?'negative':''}">৳${a.balance.toLocaleString('en-IN',{minimumFractionDigits:2})}</td>
+      <td style="font-size:12.5px;color:var(--muted);">${a.extraInfo}</td>
+    </tr>`).join('');
+}
+
+function populateSelects() {
+  const opts = accounts.map(a => `<option value="${a.accountNumber}">${a.accountNumber} — ${a.holderName}</option>`).join('');
+  ['dep-acc','with-acc','trx-from','trx-to'].forEach(id => { document.getElementById(id).innerHTML = opts; });
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  const empty = document.getElementById('history-empty');
+  if (transactions.length === 0) { list.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  const icons = { deposit:'dep', withdraw:'with', repayment:'with', transfer:'trx' };
+  const labels = { deposit:'Deposit', withdraw:'Withdrawal', repayment:'Loan Repayment', transfer:'Transfer' };
+  list.innerHTML = transactions.map(t => `
+    <div class="txn-row">
+      <div class="txn-icon ${icons[t.type]||'trx'}">${t.type==='deposit'?'↓':t.type==='transfer'?'⇄':'↑'}</div>
+      <div class="txn-info">
+        <div class="txn-name">${labels[t.type]||t.type}</div>
+        <div class="txn-sub">${t.accNo} · ${t.time.toLocaleTimeString()}</div>
+      </div>
+      <div class="txn-amount ${t.type==='deposit'?'positive':'negative'}">
+        ${t.type==='deposit'?'+':'-'}৳${t.amount.toLocaleString('en-IN',{minimumFractionDigits:2})}
+      </div>
+    </div>`).join('');
+}
+
+function updateStats() {
+  const deps = accounts.filter(a=>a.accountType!=='loan').reduce((s,a)=>s+a.balance,0);
+  const loans= accounts.filter(a=>a.accountType==='loan').reduce((s,a)=>s+a.balance,0);
+  document.getElementById('s-total').textContent = accounts.length;
+  document.getElementById('s-deposits').textContent = '৳'+deps.toLocaleString('en-IN',{maximumFractionDigits:0});
+  document.getElementById('s-loans').textContent   = '৳'+loans.toLocaleString('en-IN',{maximumFractionDigits:0});
+  document.getElementById('s-txns').textContent    = transactions.length;
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────
+function openAccount() {
+  const type   = document.getElementById('new-type').value;
+  const name   = document.getElementById('new-name').value.trim();
+  const amount = parseFloat(document.getElementById('new-amount').value);
+  const rate   = parseFloat(document.getElementById('new-rate').value) / 100;
+  if (!name) return toast("Enter holder name","error");
+  if (isNaN(amount)||amount<=0) return toast("Enter valid amount","error");
+  try {
+    let acc;
+    if (type === 'savings') {
+      if (isNaN(rate)) return toast("Enter interest rate","error");
+      acc = new SavingsAccount("SAV-"+counter++, name, amount, rate);
+    } else if (type === 'current') {
+      const od = parseFloat(document.getElementById('new-extra').value);
+      if (isNaN(od)) return toast("Enter overdraft limit","error");
+      acc = new CurrentAccount("CUR-"+counter++, name, amount, od);
+    } else {
+      const tenure = parseInt(document.getElementById('new-tenure').value);
+      if (isNaN(rate)||isNaN(tenure)) return toast("Enter rate & tenure","error");
+      acc = new LoanAccount("LON-"+counter++, name, amount, rate, tenure);
+    }
+    accounts.push(acc);
+    updateStats();
+    toast(`${acc.accountNumber} opened for ${name}`,"success");
+    document.getElementById('new-name').value='';
+    document.getElementById('new-amount').value='';
+    document.getElementById('new-rate').value='';
+    document.getElementById('new-extra').value='';
+    document.getElementById('new-tenure').value='';
+  } catch(e) { toast(e.message,"error"); }
+}
+
+function toggleFields() {
+  const type = document.getElementById('new-type').value;
+  document.getElementById('fg-extra').style.display  = type==='current'?'flex':'none';
+  document.getElementById('fg-tenure').style.display = type==='loan'?'flex':'none';
+  document.getElementById('fg-rate').style.display   = type==='savings'||type==='loan'?'flex':'none';
+  document.getElementById('lbl-deposit').textContent = type==='loan' ? 'Loan Amount (৳)' : 'Initial Deposit (৳)';
+  document.getElementById('lbl-extra').textContent   = 'Overdraft Limit (৳)';
+}
+
+function doDeposit() {
+  const accNo  = document.getElementById('dep-acc').value;
+  const amount = parseFloat(document.getElementById('dep-amt').value);
+  if (isNaN(amount)||amount<=0) return toast("Enter valid amount","error");
+  try {
+    getAcc(accNo).deposit(amount);
+    toast(`Deposited ৳${amount.toLocaleString()} to ${accNo}`,"success");
+    document.getElementById('dep-amt').value='';
+    updateStats(); renderDashTable();
+  } catch(e) { toast(e.message,"error"); }
+}
+
+function doWithdraw() {
+  const accNo  = document.getElementById('with-acc').value;
+  const amount = parseFloat(document.getElementById('with-amt').value);
+  if (isNaN(amount)||amount<=0) return toast("Enter valid amount","error");
+  try {
+    getAcc(accNo).withdraw(amount); // POLYMORPHISM in action
+    toast(`Withdrawn ৳${amount.toLocaleString()} from ${accNo}`,"success");
+    document.getElementById('with-amt').value='';
+    updateStats(); renderDashTable();
+  } catch(e) { toast(e.message,"error"); }
+}
+
+function doTransfer() {
+  const from   = document.getElementById('trx-from').value;
+  const to     = document.getElementById('trx-to').value;
+  const amount = parseFloat(document.getElementById('trx-amt').value);
+  if (from === to) return toast("From and To must differ","error");
+  if (isNaN(amount)||amount<=0) return toast("Enter valid amount","error");
+  try {
+    getAcc(from).withdraw(amount);
+    getAcc(to).deposit(amount);
+    logTxn("transfer", from+' → '+to, amount);
+    toast(`Transferred ৳${amount.toLocaleString()} from ${from} to ${to}`,"success");
+    document.getElementById('trx-amt').value='';
+    updateStats(); renderDashTable();
+  } catch(e) { toast(e.message,"error"); }
+}
+
+function getAcc(no) {
+  const a = accounts.find(x => x.accountNumber === no);
+  if (!a) throw new Error("Account not found");
+  return a;
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+seedData();
+updateStats();
+renderDashTable();
+</script>
+</body>
+</html>
